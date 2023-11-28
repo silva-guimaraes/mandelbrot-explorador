@@ -50,13 +50,15 @@ iterations_input.value = max_iterations;
 
 save_image();
 
+let position_info = document.querySelector('#position');
+let range_info = document.querySelector('#range');
 
-// function clear() {
-//     ctx.canvas.width = WIDTH;
-//     ctx.canvas.height = HEIGHT;
-//     ctx.fillStyle = 'white'; 
-//     ctx.fillRect(0, 0, WIDTH, HEIGHT);
-// }
+function update_info() {
+    position_info.innerHTML = `${camera.x}x${camera.y}`;
+    range_info.innerHTML = `${camera.x - plane_width}x${camera.x + plane_width}`;
+}
+
+update_info();
 
 let imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT)
 function draw_pixel(x, y, color) {
@@ -68,11 +70,11 @@ function draw_pixel(x, y, color) {
 }
 
 function z_add([ra, ia], [rb, ib]) {
-    return new Float32Array([ra + rb, ia + ib])
+    return new Float64Array([ra + rb, ia + ib])
 }
 
 function z_mul([ra, ia], [rb, ib]) {
-    return new Float32Array([ra*rb - ia*ib, ra*ib + ia*rb]);
+    return new Float64Array([ra*rb - ia*ib, ra*ib + ia*rb]);
 }
 
 function z_pow(z, n) {
@@ -118,6 +120,7 @@ function run() {
         plane_width = half;
         camera.x = camera.x + half + selection.x;
         camera.y = camera.y + half + selection.y;
+        update_info();
     }
 
     let start = Date.now();
@@ -126,7 +129,7 @@ function run() {
     {
         for (let x = -plane_width; x < plane_width; x += plane_width/HALF_WIDTH) 
         {
-            let [z, iterations] = iterate(new Float32Array([x+camera.x, y+camera.y]));
+            let [z, iterations] = iterate(new Float64Array([x+camera.x, y+camera.y]));
 
             if (!isNaN(z[0]) && !isNaN(z[1])) {
                 draw_pixel(
@@ -189,14 +192,9 @@ canvas.onmousemove = (event) => {
     } else {
         selection.size = Math.abs(selection.x - mx);
     }
-
-    
     ctx.putImageData(imageData, 0, 0);
     draw_selection();
 }
 
-// for (let i = 0; i < imageData.data.length; i++) {
-//     imageData.data[i] = 255;
-// }
 ctx.putImageData(imageData, 0, 0);
 draw_selection();

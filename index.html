@@ -17,13 +17,20 @@ html, body {
     height: 100%;
     background-color: black;
 }
-p, label {
+p, label, h3 {
     color: white;
-    font-size: 15px;
     font-family: monospace;
+}
+p, label {
+    font-size: 14px;
+    margin: 0px;
+}
+h3 {
+    margin: 10px;
 }
 input {
   margin: 0.4rem;
+  
 }
 #foo {
     height: 500px;
@@ -53,24 +60,28 @@ button {
             <!-- <p id="status">gerando fractal...</p> -->
             <button id="generate" onclick="run()">gerar</button>
             <button id="salvar" onclick="save_image()">gerar imagem</button>
-            <div>
+            <hr>
+            <section id="options">
+                <h3>opções:</h3>
                 <label>
                     selecionar area
                     <input id="selection" type="checkbox">
                 </label>
-            </div>
-            <div>
                 <label>
                     inverter cores
                     <input id="invert" type="checkbox">
                 </label>
-            </div>
-            <div>
                 <label>
-                    numero de iterações
+                    iterações
                     <input id="iterations" type="number" value="120">
                 </label>
-            </div>
+            </section>
+            <hr>
+            <section id="info">
+                <h3>info:</h3>
+                <p>posição: <span id="position"></span></p>
+                <p>faixa: <span id="range"></span></p>
+            </section>
         </div>
         <img>
         <script src="index.js"></script>
