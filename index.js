@@ -13,8 +13,7 @@ let plane_width = 3, plane_height /* pra qual motivo? */ = 3;
 const RED = [255, 0, 0, 255];
 const WHITE = [255, 255, 255, 255];
 const BLACK = [0, 0, 0, 255];
-const MAX_ITERATIONS = 120;
-const IN = 0, OUT = 1
+let max_iterations = 40;
 
 let camera = {
     x: 0,
@@ -36,12 +35,17 @@ document.querySelector('#selection').onclick = () => {
     draw_selection();
 }
 
-function clear() {
-    ctx.canvas.width = WIDTH;
-    ctx.canvas.height = HEIGHT;
-    ctx.fillStyle = 'white'; 
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-}
+let iterations_input = document.querySelector('#iterations');
+iterations_input.onchange = (event) => max_iterations = event.target.value;
+iterations_input.value = max_iterations;
+
+
+// function clear() {
+//     ctx.canvas.width = WIDTH;
+//     ctx.canvas.height = HEIGHT;
+//     ctx.fillStyle = 'white'; 
+//     ctx.fillRect(0, 0, WIDTH, HEIGHT);
+// }
 
 let imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT)
 function draw_pixel(x, y, color) {
@@ -64,7 +68,7 @@ function z_mul([ra, ia], [rb, ib]) {
 function iterate(a) {
     let z = [0, 0];
     let c = a
-    for (let i = 0; i < MAX_ITERATIONS; i++) {
+    for (let i = 0; i < max_iterations; i++) {
         z = z_add(z_mul(z, z), c)
         if (z[0] > 10 || z[1] > 10) 
             return [[NaN, NaN], i];
@@ -74,7 +78,6 @@ function iterate(a) {
 
 function draw_selection() {
     if (!selection) {
-        console.log("selection");
         ctx.putImageData(imageData, 0, 0);
         return;
     }
@@ -98,7 +101,6 @@ function run() {
         camera.x = camera.x + half + selection.x;
         camera.y = camera.y + half + selection.y;
     }
-    console.log(camera);
 
     let start = Date.now();
 
@@ -110,7 +112,7 @@ function run() {
                     Math.round(y * HALF_HEIGHT/plane_height), BLACK)
             } else {
                 let color = Math.round(
-                    (MAX_ITERATIONS - iterations) * 255 / MAX_ITERATIONS
+                    (max_iterations - iterations) * 255 / max_iterations
                 );
                 draw_pixel(Math.round(x * HALF_WIDTH/plane_width), 
                     Math.round(y * HALF_HEIGHT/plane_height), 
@@ -123,6 +125,14 @@ function run() {
     ctx.putImageData(imageData, 0, 0);
     let end = (Date.now() - start) / 1000;
     fractal_status.innerHTML = `concluido: ${end} segundos`; 
+}
+
+function save_image() {
+    let url = ctx.canvas.toDataURL();
+    let img = document.querySelector('img');
+    img.naturalWidth = WIDTH;
+    img.naturalHeight = HEIGHT;
+    img.src = url;
 }
 
 let dragging = false;
@@ -154,16 +164,12 @@ canvas.onmousemove = (event) => {
     }
 
     
-    console.log(selection);
     ctx.putImageData(imageData, 0, 0);
     draw_selection();
 }
 
-// clear();
-// console.log(imageData.data.map(() => 255));
 for (let i = 0; i < imageData.data.length; i++) {
     imageData.data[i] = 255;
 }
-console.log(imageData.data);
 ctx.putImageData(imageData, 0, 0);
 draw_selection();
