@@ -8,11 +8,15 @@ let fractal_status = document.querySelector('#generate');
 const WIDTH = ctx.canvas.width;
 const HEIGHT = ctx.canvas.height;
 const HALF_WIDTH = WIDTH/2, HALF_HEIGHT = WIDTH/2;
-let plane_width = 3, plane_height /* pra qual motivo? */ = 3;
+let plane_width = 3, plane_height /* por qual motivo? */ = 3;
 
 const RED = [255, 0, 0, 255];
 const WHITE = [255, 255, 255, 255];
 const BLACK = [0, 0, 0, 255];
+
+let secondary = WHITE;
+let primary = BLACK;
+
 let max_iterations = 40;
 
 let camera = {
@@ -34,10 +38,17 @@ document.querySelector('#selection').onclick = () => {
     selection = selection ? null : default_selection(); 
     draw_selection();
 }
+document.querySelector('#invert').onclick = () => {
+    secondary = secondary == BLACK ? WHITE : BLACK;
+    primary = primary == BLACK ? WHITE : BLACK;
+}
+
 
 let iterations_input = document.querySelector('#iterations');
 iterations_input.onchange = (event) => max_iterations = event.target.value;
 iterations_input.value = max_iterations;
+
+save_image();
 
 
 // function clear() {
@@ -64,12 +75,19 @@ function z_mul([ra, ia], [rb, ib]) {
     return new Float32Array([ra*rb - ia*ib, ra*ib + ia*rb]);
 }
 
+function z_pow(z, n) {
+    for (let i = 0; i < n-1; i++) {
+        z = z_mul(z, z);
+    }
+    return z;
+}
+
 
 function iterate(a) {
     let z = [0, 0];
     let c = a
     for (let i = 0; i < max_iterations; i++) {
-        z = z_add(z_mul(z, z), c)
+        z = z_add(z_pow(z, 2), c)
         if (z[0] > 10 || z[1] > 10) 
             return [[NaN, NaN], i];
     }
@@ -104,16 +122,25 @@ function run() {
 
     let start = Date.now();
 
-    for (let y = -plane_height; y < plane_height; y += plane_height/HALF_HEIGHT) {
-        for (let x = -plane_width; x < plane_width; x += plane_width/HALF_WIDTH) {
+    for (let y = -plane_height; y < plane_height; y += plane_height/HALF_HEIGHT) 
+    {
+        for (let x = -plane_width; x < plane_width; x += plane_width/HALF_WIDTH) 
+        {
             let [z, iterations] = iterate(new Float32Array([x+camera.x, y+camera.y]));
+
             if (!isNaN(z[0]) && !isNaN(z[1])) {
-                draw_pixel(Math.round(x * HALF_WIDTH/plane_width), 
-                    Math.round(y * HALF_HEIGHT/plane_height), BLACK)
-            } else {
-                let color = Math.round(
-                    (max_iterations - iterations) * 255 / max_iterations
+                draw_pixel(
+                    Math.round(x * HALF_WIDTH/plane_width), 
+                    Math.round(y * HALF_HEIGHT/plane_height), 
+                    primary
                 );
+
+            } else {
+
+                let color = secondary == WHITE ?
+                Math.round((max_iterations - iterations) * 255 / max_iterations) :
+                Math.round(iterations * 255 / max_iterations);
+
                 draw_pixel(Math.round(x * HALF_WIDTH/plane_width), 
                     Math.round(y * HALF_HEIGHT/plane_height), 
                     [color, color, color, 255])
@@ -168,8 +195,8 @@ canvas.onmousemove = (event) => {
     draw_selection();
 }
 
-for (let i = 0; i < imageData.data.length; i++) {
-    imageData.data[i] = 255;
-}
+// for (let i = 0; i < imageData.data.length; i++) {
+//     imageData.data[i] = 255;
+// }
 ctx.putImageData(imageData, 0, 0);
 draw_selection();
