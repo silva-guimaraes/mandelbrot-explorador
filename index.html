@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>mandelbro</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: black;
+}
+p, label {
+    color: white;
+    font-size: 15px;
+    font-family: monospace;
+}
+input {
+  margin: 0.4rem;
+}
+#foo {
+    height: 500px;
+    width: 200px;
+}
+canvas {
+    margin: 30px;
+}
+#generate {
+    width: 100%;
+    height: 50px;
+    font-family: ui-monospace;
+    background: black;
+    color: white;
+    border-radius: 2px 2px;
+}
+        </style>
+    </head>
+    <body class="center">
+        <canvas height="500" width="500">javascript?</canvas>
+        <div id="foo">
+            <!-- <p id="status">gerando fractal...</p> -->
+            <button id="generate" onclick="run()">gerar</button>
+            <div>
+                <input id="selection" type="checkbox" name="selection">
+                <label for="selection">selection</label>
+            </div>
+        </div>
+        <script src="index.js"></script>
+    </body>
+</html>
