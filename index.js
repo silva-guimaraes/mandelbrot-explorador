@@ -52,21 +52,23 @@ save_image();
 
 let position_info = document.querySelector('#position');
 let range_info = document.querySelector('#range');
+let size_info = document.querySelector('#size');
 
 function update_info() {
     position_info.innerHTML = `${camera.x}x${camera.y}`;
-    range_info.innerHTML = `${camera.x - plane_width}x${camera.x + plane_width}`;
+    range_info.innerHTML = `${camera.x - plane_width}\n${camera.x + plane_width}`;
+    size_info.innerHTML = plane_width;
 }
 
 update_info();
 
-let imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT)
+let framebuffer = ctx.getImageData(0, 0, WIDTH, HEIGHT)
 function draw_pixel(x, y, color) {
     let off = (y + HALF_HEIGHT) * WIDTH*4 + (x + HALF_WIDTH) * 4;
-    imageData.data[off + 0] = color[0];
-    imageData.data[off + 1] = color[1];
-    imageData.data[off + 2] = color[2];
-    imageData.data[off + 3] = color[3];
+    framebuffer.data[off + 0] = color[0];
+    framebuffer.data[off + 1] = color[1];
+    framebuffer.data[off + 2] = color[2];
+    framebuffer.data[off + 3] = color[3];
 }
 
 function z_add([ra, ia], [rb, ib]) {
@@ -90,7 +92,7 @@ function iterate(a) {
     let c = a
     for (let i = 0; i < max_iterations; i++) {
         z = z_add(z_pow(z, 2), c)
-        if (z[0] > 10 || z[1] > 10) 
+        if (z[0] > 5 || z[1] > 5) 
             return [[NaN, NaN], i];
     }
     return [z, -1];
@@ -98,7 +100,7 @@ function iterate(a) {
 
 function draw_selection() {
     if (!selection) {
-        ctx.putImageData(imageData, 0, 0);
+        ctx.putImageData(framebuffer, 0, 0);
         return;
     }
     ctx.beginPath();
@@ -152,7 +154,7 @@ function run() {
     }
     if (selection) 
         selection = default_selection(); 
-    ctx.putImageData(imageData, 0, 0);
+    ctx.putImageData(framebuffer, 0, 0);
     let end = (Date.now() - start) / 1000;
     fractal_status.innerHTML = `concluido: ${end} segundos`; 
 }
@@ -192,9 +194,9 @@ canvas.onmousemove = (event) => {
     } else {
         selection.size = Math.abs(selection.x - mx);
     }
-    ctx.putImageData(imageData, 0, 0);
+    ctx.putImageData(framebuffer, 0, 0);
     draw_selection();
 }
 
-ctx.putImageData(imageData, 0, 0);
+ctx.putImageData(framebuffer, 0, 0);
 draw_selection();

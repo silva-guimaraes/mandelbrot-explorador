@@ -17,9 +17,9 @@ html, body {
     height: 100%;
     background-color: black;
 }
-p, label, h3 {
+p, label, h3, span {
     color: white;
-    font-family: monospace;
+    font-family: ui-monospace;
 }
 p, label {
     font-size: 14px;
@@ -63,24 +63,34 @@ button {
             <hr>
             <section id="options">
                 <h3>opções:</h3>
-                <label>
-                    selecionar area
-                    <input id="selection" type="checkbox">
-                </label>
-                <label>
-                    inverter cores
-                    <input id="invert" type="checkbox">
-                </label>
-                <label>
-                    iterações
-                    <input id="iterations" type="number" value="120">
-                </label>
+                <div>
+                    <label>
+                        selecionar area
+                        <input id="selection" type="checkbox">
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        inverter cores
+                        <input id="invert" type="checkbox">
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        iterações
+                        <input id="iterations" type="number" value="120">
+                    </label>
+                </div>
             </section>
             <hr>
             <section id="info">
                 <h3>info:</h3>
-                <p>posição: <span id="position"></span></p>
-                <p>faixa: <span id="range"></span></p>
+                <p>posição: </p>
+                <span id="position"></span>
+                <p>intervalo: </p>
+                <span id="range"></span>
+                <p>faixa: </p>
+                <span id="size"></span>
             </section>
         </div>
         <img>
