@@ -2,7 +2,8 @@
 let canvas = document.querySelector('canvas');
 let ctx = canvas.getContext("2d");
 
-let fractal_status = document.querySelector('#generate');
+let generate_button = document.querySelector('#generate');
+let save_button = document.querySelector('#save');
 
 
 const WIDTH = ctx.canvas.width;
@@ -34,11 +35,14 @@ let default_selection = () => {
 selection = null;
 
 
-document.querySelector('#selection').onclick = () => {
+let selection_toggle = document.querySelector('#selection');
+selection_toggle.onclick = () => {
     selection = selection ? null : default_selection(); 
     draw_selection();
 }
-document.querySelector('#invert').onclick = () => {
+
+let invert_button = document.querySelector('#invert');
+invert_button.onclick = () => {
     secondary = secondary == BLACK ? WHITE : BLACK;
     primary = primary == BLACK ? WHITE : BLACK;
 }
@@ -55,8 +59,8 @@ let range_info = document.querySelector('#range');
 let size_info = document.querySelector('#size');
 
 function update_info() {
-    position_info.innerHTML = `${camera.x}x${camera.y}`;
-    range_info.innerHTML = `${camera.x - plane_width}\n${camera.x + plane_width}`;
+    position_info.innerHTML = `${camera.x}<br>${camera.y}`;
+    range_info.innerHTML = `${camera.x - plane_width}<br>${camera.x + plane_width}`;
     size_info.innerHTML = plane_width;
 }
 
@@ -92,7 +96,8 @@ function iterate(a) {
     let c = a
     for (let i = 0; i < max_iterations; i++) {
         z = z_add(z_pow(z, 2), c)
-        if (z[0] > 5 || z[1] > 5) 
+        let d = Math.sqrt(z[0] * z[0] + z[1] * z[1]) ;
+        if (d > 2) 
             return [[NaN, NaN], i];
     }
     return [z, -1];
@@ -114,7 +119,7 @@ function draw_selection() {
     ctx.stroke();
 }
 
-function run() {
+async function run() {
 
     if (selection) {
         let half = selection.size/2;
@@ -122,49 +127,81 @@ function run() {
         plane_width = half;
         camera.x = camera.x + half + selection.x;
         camera.y = camera.y + half + selection.y;
-        update_info();
     }
+
+    generate_button.innerHTML = "gerando..."; 
+    generate_button.disabled = true;
+    save_button.disabled = true;
+    invert_button.disabled = true;
+    selection_toggle.disabled = true;
+    iterations_input.disabled = true;
+
+
 
     let start = Date.now();
 
+    let calculations = [];
     for (let y = -plane_height; y < plane_height; y += plane_height/HALF_HEIGHT) 
     {
-        for (let x = -plane_width; x < plane_width; x += plane_width/HALF_WIDTH) 
-        {
-            let [z, iterations] = iterate(new Float64Array([x+camera.x, y+camera.y]));
+        let calculate_line = () => {
+            for (let x = -plane_width; x < plane_width; x += plane_width/HALF_WIDTH) 
+            {
+                let [z, iterations] = iterate(new Float64Array([x+camera.x, y+camera.y]));
 
-            if (!isNaN(z[0]) && !isNaN(z[1])) {
-                draw_pixel(
-                    Math.round(x * HALF_WIDTH/plane_width), 
-                    Math.round(y * HALF_HEIGHT/plane_height), 
-                    primary
-                );
+                if (!isNaN(z[0]) && !isNaN(z[1])) {
+                    draw_pixel(
+                        Math.round(x * HALF_WIDTH/plane_width), 
+                        Math.round(y * HALF_HEIGHT/plane_height), 
+                        primary
+                    );
 
-            } else {
+                } else {
 
-                let color = secondary == WHITE ?
-                Math.round((max_iterations - iterations) * 255 / max_iterations) :
-                Math.round(iterations * 255 / max_iterations);
+                    let color = secondary == WHITE ?
+                        Math.round((max_iterations - iterations) * 255 / max_iterations) :
+                        Math.round(iterations * 255 / max_iterations);
 
-                draw_pixel(Math.round(x * HALF_WIDTH/plane_width), 
-                    Math.round(y * HALF_HEIGHT/plane_height), 
-                    [color, color, color, 255])
+                    draw_pixel(Math.round(x * HALF_WIDTH/plane_width), 
+                        Math.round(y * HALF_HEIGHT/plane_height), 
+                        [color, color, color, 255])
+                }
             }
-        }
+        };
+        calculations.push(new Promise((resolve) => {
+            // isso joga todos os calculos pro event loop para que a UI se 
+            // mantenha responsiva
+            setTimeout(() => { 
+                calculate_line();
+                resolve();
+            }, 1);
+        }));
     }
+
+    await Promise.all(calculations);
+
+    update_info();
     if (selection) 
         selection = default_selection(); 
     ctx.putImageData(framebuffer, 0, 0);
     let end = (Date.now() - start) / 1000;
-    fractal_status.innerHTML = `concluido: ${end} segundos`; 
+    generate_button.disabled = false;
+    save_button.disabled = false;
+    invert_button.disabled = false;
+    selection_toggle.disabled = false;
+    iterations_input.disabled = false;
+    generate_button.innerHTML = `concluido: ${end} segundos`; 
 }
 
 function save_image() {
+    // remove a seleção da imagem
+    // ctx.putImageData(framebuffer, 0, 0);
     let url = ctx.canvas.toDataURL();
     let img = document.querySelector('img');
     img.naturalWidth = WIDTH;
     img.naturalHeight = HEIGHT;
     img.src = url;
+    // por seleçá̃o de volta no lugar
+    // draw_selection();
 }
 
 let dragging = false;
